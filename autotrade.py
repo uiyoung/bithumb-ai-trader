@@ -14,10 +14,12 @@ import telegram
 # .env 파일에서 API 키 로드
 load_dotenv()
 
-
+# Bithumb API
 ACCESS_KEY = os.getenv("BITHUMB_ACCESS_KEY")
 SECRET_KEY = os.getenv("BITHUMB_SECRET_KEY")
+bithumb = python_bithumb.Bithumb(ACCESS_KEY, SECRET_KEY)
 
+# Telegram API
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 bot = telegram.Bot(token=TELEGRAM_BOT_TOKEN)
@@ -119,7 +121,6 @@ def get_ai_decision(conn):
   news_articles = get_bitcoin_news("bitcoin", "us", "en", 5)
 
   # 현재 잔고 확인
-  bithumb = python_bithumb.Bithumb(ACCESS_KEY, SECRET_KEY)
   krw_balance = bithumb.get_balance("KRW")
   btc_balance = bithumb.get_balance("BTC")
   current_btc_price = python_bithumb.get_current_price("KRW-BTC")
@@ -166,7 +167,7 @@ def get_ai_decision(conn):
                 {"decision": "sell", "percentage": 50, "reason": "some technical reason"}
                 {"decision": "hold", "percentage": 0, "reason": "some technical reason"}
                 """
-  script2 = """
+  script_buy_or_sell_only = """
             You are an expert in Bitcoin investing.
 
             Analyze the provided data:
@@ -197,7 +198,7 @@ def get_ai_decision(conn):
       messages=[
           {
               "role": "system",
-              "content": script2
+              "content": script_buy_or_sell_only
           },
           {
               "role": "user",
@@ -207,9 +208,7 @@ def get_ai_decision(conn):
       response_format={"type": "json_object"}
   )
 
-  # AI 응답 처리
   result = json.loads(response.choices[0].message.content)
-
   return result
 
 
@@ -225,56 +224,64 @@ def execute_trade(run_transaction=True):
 
   # AI 결정 얻기
   result = get_ai_decision(conn)
-  asyncio.run(send_telegram_message(f"### AI Decision: {result} ###"))
-
-  if run_transaction == False:
-    return
-
-  # 빗썸 API 연결
-  bithumb = python_bithumb.Bithumb(ACCESS_KEY, SECRET_KEY)
-
-  # 잔고 확인
-  # krw_balance = bithumb.get_balance("KRW")
-  # btc_balance = bithumb.get_balance("BTC")
-
   ai_decision = result["decision"]
   reason = result["reason"]
   percentage = result.get("percentage", 0)  # 투자 비율 (0-100%)
+
+  # 잔고 확인
+  krw_balance = bithumb.get_balance("KRW")
+  btc_balance = bithumb.get_balance("BTC")
 
   # 최소 금액과 최대 금액 설정
   min_amount = 10100
   max_amount = 20000
   normalized_percentage = percentage / 100.0
+  target_krw_amount = (min_amount + (max_amount - min_amount) * normalized_percentage) / 0.997
+
+  telegram_message = f"""
+    ---
+    ### ✨ AI 투자 결정 ✨
+    ---
+    **결정:** {ai_decision}
+    **사유:** {reason}
+    **투자 비율:** {percentage}%
+    ---
+    **주문할 금액:** {target_krw_amount:,.0f} KRW 
+    ---
+    **KRW 잔고:** {krw_balance}
+    **BTC 잔고:** {btc_balance}
+    """
+  asyncio.run(send_telegram_message(telegram_message))
+
+  if run_transaction == False:
+    return
 
   order_executed = False
 
   # order by ai decision
   if ai_decision == "buy":
-    amount = (min_amount + (max_amount - min_amount) * normalized_percentage) / 0.997
-
-    print(f"### Buy Order: {amount:,.0f} KRW ###")
-
     try:
-      bithumb.buy_market_order("KRW-BTC", amount)
+      bithumb.buy_market_order("KRW-BTC", target_krw_amount)
       order_executed = True
     except Exception as e:
       print(f"### Buy Failed: {str(e)} ###")
 
-    asyncio.run(send_telegram_message(f"### Buy Order: {amount:,.0f} KRW ###"))
+    message = f"### Buy Order: {target_krw_amount:,.0f} KRW ###"
+    print(message)
+    asyncio.run(send_telegram_message(message))
   elif ai_decision == "sell":
     current_btc_price = python_bithumb.get_current_price("KRW-BTC")
-    target_value = min_target_value + (max_target_value - min_target_value) * normalized_percentage
-    btc_amount = (target_value / current_btc_price) / 0.997
-
-    print(f"### Sell Order: {btc_amount} BTC, amount: {target_value:,.0f} KRW ###")
+    target_btc_amount = target_krw_amount / current_btc_price
 
     try:
-      bithumb.sell_market_order("KRW-BTC", btc_amount)
+      bithumb.sell_market_order("KRW-BTC", target_btc_amount)
       order_executed = True
     except Exception as e:
       print(f"### Sell Failed: {str(e)} ###")
 
-    asyncio.run(send_telegram_message(f"### Sell Order: {btc_amount} BTC, amount: {target_value:,.0f} KRW ###"))
+    message = f"### Sell Order: {target_btc_amount} BTC({target_krw_amount:,.0f} KRW) ###"
+    print(message)
+    asyncio.run(send_telegram_message(message))
   elif ai_decision == "hold":
     print("### Hold Position ###")
     order_executed = True  # 'hold'도 성공한 결정으로 간주
