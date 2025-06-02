@@ -4,6 +4,7 @@ import python_bithumb
 import time
 import schedule
 import telegram
+import asyncio
 
 # .env 파일에서 API 키 로드
 load_dotenv()
@@ -31,11 +32,18 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 def buy_now():
   print(f"### Buy Order: {amount:,.0f} KRW ###")
   try:
-    # bithumb.buy_market_order("KRW-BTC", amount)
-    bot.send_message(chat_id=CHAT_ID, text=f"### Buy Order: {amount:,.0f} KRW ###")
+    bithumb.buy_market_order("KRW-BTC", amount)
+    asyncio.run(send_telegram_message(f"### Buy Order: {amount:,.0f} KRW ###"))
   except Exception as e:
     print(f"### Buy Failed: {str(e)} ###")
-    bot.send_message(chat_id=CHAT_ID, text=f"### Buy Failed: {str(e)} ###")
+    asyncio.run(send_telegram_message(f"### Buy Failed: {str(e)} ###"))
+
+
+async def send_telegram_message(text):
+  try:
+      await bot.send_message(chat_id=CHAT_ID, text=text)
+  except Exception as e:
+      print(f"[TELEGRAM ERROR] {str(e)}")
 
 
 def run_scheduler():
