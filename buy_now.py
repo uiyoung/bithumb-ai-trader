@@ -1,39 +1,37 @@
 import os
 from dotenv import load_dotenv
 import python_bithumb
+import asyncio
+import telegram
 import time
 import schedule
-import telegram
-import asyncio
 
 # .env 파일에서 API 키 로드
 load_dotenv()
 
-
-# BITHUMB API 연결
-access = os.getenv("BITHUMB_ACCESS_KEY")
-secret = os.getenv("BITHUMB_SECRET_KEY")
-bithumb = python_bithumb.Bithumb(access, secret)
+ACCESS_KEY = os.getenv("BITHUMB_ACCESS_KEY")
+SECRET_KEY = os.getenv("BITHUMB_SECRET_KEY")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+AMOUNT = 10100
+SCHEDULE_TIME = "03:17"
 
 # telegram bot
 telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
 bot = telegram.Bot(token=telegram_bot_token)
 
-# 현재 잔고 확인
+# BITHUMB 잔고 확인
+bithumb = python_bithumb.Bithumb(ACCESS_KEY, SECRET_KEY)
 my_krw = bithumb.get_balance("KRW")
 my_btc = bithumb.get_balance("BTC")
-current_price = python_bithumb.get_current_price("KRW-BTC")
-
-amount = 10100
-SCHEDULE_TIME = "03:17"  # 전역변수로 시간 설정
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID") 
 
 
 def buy_now():
-  print(f"### Buy Order: {amount:,.0f} KRW ###")
+  current_price = python_bithumb.get_current_price("KRW-BTC")
+  print(f"### Buy Order: {AMOUNT:,.0f} KRW {current_price:,.0f} BTC ###")
+  asyncio.run(send_telegram_message(f"### Buy Order: {AMOUNT:,.0f} KRW {current_price:,.0f} BTC ###"))
+
   try:
-    bithumb.buy_market_order("KRW-BTC", amount)
-    asyncio.run(send_telegram_message(f"### Buy Order: {amount:,.0f} KRW ###"))
+    bithumb.buy_market_order("KRW-BTC", AMOUNT)
   except Exception as e:
     print(f"### Buy Failed: {str(e)} ###")
     asyncio.run(send_telegram_message(f"### Buy Failed: {str(e)} ###"))
@@ -41,9 +39,9 @@ def buy_now():
 
 async def send_telegram_message(text):
   try:
-      await bot.send_message(chat_id=CHAT_ID, text=text)
+    await bot.send_message(chat_id=CHAT_ID, text=text)
   except Exception as e:
-      print(f"[TELEGRAM ERROR] {str(e)}")
+    print(f"[TELEGRAM ERROR] {str(e)}")
 
 
 def run_scheduler():
