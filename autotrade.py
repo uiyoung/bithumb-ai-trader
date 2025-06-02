@@ -239,18 +239,16 @@ def execute_trade(run_transaction=True):
   target_krw_amount = (min_amount + (max_amount - min_amount) * normalized_percentage) / 0.997
 
   telegram_message = f"""
-    ---
-    ### ✨ AI 투자 결정 ✨
-    ---
-    **결정:** {ai_decision}
-    **사유:** {reason}
-    **투자 비율:** {percentage}%
-    ---
-    **주문할 금액:** {target_krw_amount:,.0f} KRW 
-    ---
-    **KRW 잔고:** {krw_balance}
-    **BTC 잔고:** {btc_balance}
-    """
+✨ AI 투자 결정 ✨
+- 결정: {ai_decision}
+- 사유: {reason}
+--------------------------
+- 투자 비율: {percentage}%
+- 주문할 금액: {target_krw_amount:,.0f} KRW 
+--------------------------
+- KRW 잔고: {krw_balance}
+- BTC 잔고: {btc_balance}
+"""
   asyncio.run(send_telegram_message(telegram_message))
 
   if run_transaction == False:
