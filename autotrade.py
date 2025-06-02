@@ -209,12 +209,11 @@ def get_ai_decision(conn):
 
   # AI 응답 처리
   result = json.loads(response.choices[0].message.content)
-  asyncio.run(send_telegram_message(f"### AI Decision: {result['decision'].upper()} ###"))
 
   return result
 
 
-def execute_trade():
+def execute_trade(run_transaction=True):
   # 트레이딩 실행 함수
 
   # 데이터베이스 초기화
@@ -226,7 +225,10 @@ def execute_trade():
 
   # AI 결정 얻기
   result = get_ai_decision(conn)
-  print(result)
+  asyncio.run(send_telegram_message(f"### AI Decision: {result} ###"))
+
+  if run_transaction == False:
+    return
 
   # 빗썸 API 연결
   bithumb = python_bithumb.Bithumb(ACCESS_KEY, SECRET_KEY)
@@ -307,9 +309,9 @@ def run_scheduler():
   SCHEDULE_TIME = "03:17"
   print(f"스케줄링된 실행 시간: 매일 {SCHEDULE_TIME}")
 
-  schedule.every().day.at("09:00").do(get_ai_decision)
-  schedule.every().day.at(SCHEDULE_TIME).do(execute_trade)
-  schedule.every().day.at("11:00").do(get_ai_decision)
+  schedule.every().day.at("09:00").do(execute_trade, run_transaction=False)
+  schedule.every().day.at(SCHEDULE_TIME).do(execute_trade, run_transaction=True)
+  schedule.every().day.at("11:00").do(execute_trade, run_transaction=False)
 
   # 매일 특정 시간에 작업 실행하도록 스케줄링
   # print("스케줄링된 실행 시간: 매일 09:00, 15:00, 21:00")
