@@ -75,7 +75,6 @@ def get_recent_trades(conn, limit=5):
     trade = {columns[i]: row[i] for i in range(len(columns))}
     trades.append(trade)
 
-  conn.close()
   return trades
 
 
