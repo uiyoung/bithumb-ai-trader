@@ -46,8 +46,8 @@ def log_trade(conn, decision, percentage, reason, btc_balance, krw_balance, btc_
   # 거래 정보를 DB에 기록하는 함수
   c = conn.cursor()
   timestamp = datetime.now().isoformat()
-  c.execute("""INSERT INTO trades 
-                 (timestamp, decision, percentage, reason, btc_balance, krw_balance, btc_price) 
+  c.execute("""INSERT INTO trades
+                 (timestamp, decision, percentage, reason, btc_balance, krw_balance, btc_price)
                  VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (timestamp, decision, percentage, reason, btc_balance, krw_balance, btc_price))
   conn.commit()
@@ -245,19 +245,19 @@ def execute_trade(run_transaction=True):
   telegram_message = f"""
 *✨ AI 투자 결정 ✨*
 
-*📌 결정:* *{ai_decision.upper()}*  
-*📝 사유:* _{reason}_  
+*📌 결정:* *{ai_decision.upper()}*
+*📝 사유:* _{reason}_
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-*📈 현재가:* `{current_btc_price:,.0f}` 원  
-*📊 투자 비율:* `{percentage}%`  
-*💸 주문 금액:* `{target_krw_amount:,.0f}` 원  
+*📈 현재가:* `{current_btc_price:,.0f}` 원
+*📊 투자 비율:* `{percentage}%`
+*💸 주문 금액:* `{target_krw_amount:,.0f}` 원
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-*💰 KRW 잔고:* `{krw_balance}`  
-*🪙 BTC 잔고:* `{btc_balance}`  
+*💰 KRW 잔고:* `{krw_balance}`
+*🪙 BTC 잔고:* `{btc_balance}`
 """
   asyncio.run(send_telegram_message(telegram_message))
 
@@ -274,14 +274,14 @@ def execute_trade(run_transaction=True):
     except Exception as e:
       print(f"### Buy Failed: {str(e)} ###")
 
-  message = f"""
+    message = f"""
 *📈 ₿ BUY Order ₿ 📈*
 
-*💰 거래금액:* `{target_krw_amount:,.0f}` 원  
-*💹 체결가격:* `{current_btc_price:,.0f}` 원  
-*🪙 거래수량:* `{target_krw_amount / current_btc_price:,.8f}` BTC  
+*💰 거래금액:* `{target_krw_amount:,.0f}` 원
+*💹 체결가격:* `{current_btc_price:,.0f}` 원
+*🪙 거래수량:* `{target_krw_amount / current_btc_price:,.8f}` BTC
 
-━━━━━━━━━━━━━━━━━━━━━━  
+━━━━━━━━━━━━━━━━━━━━━━
 _자동매매 시스템에 의해 주문이 실행되었습니다_
 """
     print(message)
@@ -311,28 +311,28 @@ _자동매매 시스템에 의해 주문이 실행되었습니다_
     print("### Hold Position ###")
     order_executed = True  # 'hold'도 성공한 결정으로 간주
 
-  # 잔고 업데이트를 위해 잠시 대기
-  time.sleep(1)
+    # 잔고 업데이트를 위해 잠시 대기
+    time.sleep(1)
 
-  # 거래 후 최신 잔고 조회
-  updated_krw = bithumb.get_balance("KRW")
-  updated_btc = bithumb.get_balance("BTC")
-  updated_price = python_bithumb.get_current_price("KRW-BTC")
+    # 거래 후 최신 잔고 조회
+    updated_krw = bithumb.get_balance("KRW")
+    updated_btc = bithumb.get_balance("BTC")
+    updated_price = python_bithumb.get_current_price("KRW-BTC")
 
-  # 거래 정보 로깅
-  log_trade(
-      conn,
-      ai_decision,
-      percentage if order_executed else 0,
-      reason,
-      updated_btc,
-      updated_krw,
-      updated_price
-  )
+    # 거래 정보 로깅
+    log_trade(
+        conn,
+        ai_decision,
+        percentage if order_executed else 0,
+        reason,
+        updated_btc,
+        updated_krw,
+        updated_price
+    )
 
-  conn.close()
+    conn.close()
 
-  print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 트레이딩 작업 완료")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 트레이딩 작업 완료")
 
 
 def run_scheduler():
@@ -341,9 +341,9 @@ def run_scheduler():
   SCHEDULE_TIME = "03:17"
   print(f"스케줄링된 실행 시간: 매일 {SCHEDULE_TIME}")
 
-  schedule.every().day.at("09:00").do(execute_trade, run_transaction=False)
   schedule.every().day.at(SCHEDULE_TIME).do(execute_trade, run_transaction=True)
   schedule.every().day.at("11:00").do(execute_trade, run_transaction=False)
+  schedule.every().day.at("23:00").do(execute_trade, run_transaction=False)
 
   # 매일 특정 시간에 작업 실행하도록 스케줄링
   # print("스케줄링된 실행 시간: 매일 09:00, 15:00, 21:00")
