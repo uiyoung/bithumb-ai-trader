@@ -89,9 +89,13 @@ def get_bitcoin_news(query="bitcoin", location="us", language="en", num_results=
       "api_key": SERPAPI_API_KEY
   }
 
-  response = requests.get(api_url, params=params)
-  response.raise_for_status()
-  results = response.json()
+  try:
+    response = requests.get(api_url, params=params)
+    response.raise_for_status()
+    results = response.json()
+  except Exception as e:
+    print(f"[NEWS ERROR] {str(e)}")
+    return []
 
   news_data = []
   if "news_results" in results:
