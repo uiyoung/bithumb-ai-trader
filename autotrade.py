@@ -243,7 +243,7 @@ def execute_trade(run_transaction=True):
 
   telegram_message = f"""
 ✨ AI 투자 결정 ✨
-- 결정: {ai_decision}
+- 결정: {ai_decision.upper()}
 - 사유: {reason}
 --------------------------
 - 투자 비율: {percentage}%
@@ -267,7 +267,10 @@ def execute_trade(run_transaction=True):
     except Exception as e:
       print(f"### Buy Failed: {str(e)} ###")
 
-    message = f"### Buy Order: {target_krw_amount:,.0f} KRW ###"
+    message = f"""₿ BUY Order ₿ 
+    - BTC price: {current_btc_price:,.0f}
+    - amount: {target_krw_amount:,.0f} KRW
+    """
     print(message)
     asyncio.run(send_telegram_message(message))
   elif ai_decision == "sell":
@@ -280,7 +283,10 @@ def execute_trade(run_transaction=True):
     except Exception as e:
       print(f"### Sell Failed: {str(e)} ###")
 
-    message = f"### Sell Order: {target_btc_amount} BTC({target_krw_amount:,.0f} KRW) ###"
+    message = f"""₿ SELL Order ₿
+    - BTC price: {current_btc_price:,.0f}
+    - amount: {target_btc_amount:,.0f} BTC({target_krw_amount:,.0f} KRW)
+    """
     print(message)
     asyncio.run(send_telegram_message(message))
   elif ai_decision == "hold":
