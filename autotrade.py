@@ -147,52 +147,52 @@ def get_ai_decision(conn):
   }
 
   script = """
-                You are an expert in Bitcoin investing.
+You are an expert in Bitcoin investing.
 
-                Analyze the provided data:
-                1. Chart Data: Multi-timeframe OHLCV data ('short_term': 1h, 'mid_term': 4h, 'long_term': daily).
-                2. News Data: Recent Bitcoin news articles with 'title' and 'date'.
-                3. Current Balance: Current KRW and BTC balances and current BTC price.
-                4. Recent Trades: History of recent trading decisions and their outcomes.
+Analyze the provided data:
+1. Chart Data: Multi-timeframe OHLCV data ('short_term': 1h, 'mid_term': 4h, 'long_term': daily).
+2. News Data: Recent Bitcoin news articles with 'title' and 'date'.
+3. Current Balance: Current KRW and BTC balances and current BTC price.
+4. Recent Trades: History of recent trading decisions and their outcomes.
 
-                When analyzing recent trades:
-                - Evaluate if previous decisions were profitable
-                - Check if market conditions have changed since the last trade
-                - Consider how the market reacted to your previous decisions
-                - Learn from successful and unsuccessful trades
-                - Maintain consistency in your strategy unless there's a clear reason to change
+When analyzing recent trades:
+- Evaluate if previous decisions were profitable
+- Check if market conditions have changed since the last trade
+- Consider how the market reacted to your previous decisions
+- Learn from successful and unsuccessful trades
+- Maintain consistency in your strategy unless there's a clear reason to change
 
-                **Task:** Based on technical analysis, news sentiment, and trading history, decide whether to **buy**, **sell**, or **hold** Bitcoin.
-                For buy or sell decisions, include a percentage (1-100) indicating what portion of available funds to use.
+**Task:** Based on technical analysis, news sentiment, and trading history, decide whether to **buy**, **sell**, or **hold** Bitcoin.
+For buy or sell decisions, include a percentage (1-100) indicating what portion of available funds to use.
 
-                **Output Format:** Respond ONLY in JSON format like:
-                {"decision": "buy", "percentage": 20, "reason": "some technical reason"}
-                {"decision": "sell", "percentage": 50, "reason": "some technical reason"}
-                {"decision": "hold", "percentage": 0, "reason": "some technical reason"}
-                """
+**Output Format:** Respond ONLY in JSON format like:
+{"decision": "buy", "percentage": 20, "reason": "some technical reason"}
+{"decision": "sell", "percentage": 50, "reason": "some technical reason"}
+{"decision": "hold", "percentage": 0, "reason": "some technical reason"}
+"""
   script_buy_or_sell_only = """
-            You are an expert in Bitcoin investing.
+You are an expert in Bitcoin investing.
 
-            Analyze the provided data:
-            1. Chart Data: Multi-timeframe OHLCV data ('short_term': 1h, 'mid_term': 4h, 'long_term': daily).
-            2. News Data: Recent Bitcoin news articles with 'title' and 'date'.
-            3. Current Balance: Current KRW and BTC balances and current BTC price.
-            4. Recent Trades: History of recent trading decisions and their outcomes.
+Analyze the provided data:
+1. Chart Data: Multi-timeframe OHLCV data ('short_term': 1h, 'mid_term': 4h, 'long_term': daily).
+2. News Data: Recent Bitcoin news articles with 'title' and 'date'.
+3. Current Balance: Current KRW and BTC balances and current BTC price.
+4. Recent Trades: History of recent trading decisions and their outcomes.
 
-            When analyzing recent trades:
-            - Evaluate if previous decisions were profitable
-            - Check if market conditions have changed since the last trade
-            - Consider how the market reacted to your previous decisions
-            - Learn from successful and unsuccessful trades
-            - Maintain consistency in your strategy unless there's a clear reason to change
+When analyzing recent trades:
+- Evaluate if previous decisions were profitable
+- Check if market conditions have changed since the last trade
+- Consider how the market reacted to your previous decisions
+- Learn from successful and unsuccessful trades
+- Maintain consistency in your strategy unless there's a clear reason to change
 
-            **Task:** Based on technical analysis, news sentiment, and trading history, decide whether to **buy** or **sell** Bitcoin.
-            For buy or sell decisions, include a percentage (1-100) indicating what portion of available funds to use.
+**Task:** Based on technical analysis, news sentiment, and trading history, decide whether to **buy** or **sell** Bitcoin.
+For buy or sell decisions, include a percentage (1-100) indicating what portion of available funds to use.
 
-            **Output Format:** Respond ONLY in JSON format like:
-            {"decision": "buy", "percentage": 20, "reason": "some technical reason"}
-            {"decision": "sell", "percentage": 50, "reason": "some technical reason"}
-            """
+**Output Format:** Respond ONLY in JSON format like:
+{"decision": "buy", "percentage": 20, "reason": "some technical reason"}
+{"decision": "sell", "percentage": 50, "reason": "some technical reason"}
+"""
 
   # OpenAI GPT에게 판단 요청
   client = OpenAI()
