@@ -109,7 +109,7 @@ def get_bitcoin_news(query="bitcoin", location="us", language="en", num_results=
 
 async def send_telegram_message(text):
   try:
-    await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=text, parse_mode='MarkdownV2')
+    await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=text)
   except Exception as e:
     print(f"[TELEGRAM ERROR] {str(e)}")
 
@@ -243,21 +243,17 @@ def execute_trade(run_transaction=True):
   target_krw_amount = (min_amount + (max_amount - min_amount) * normalized_percentage) / 0.997
 
   telegram_message = f"""
-*✨ AI 투자 결정 ✨*
+✨ AI 투자 결정 ✨
 
-*📌 결정:* *{ai_decision.upper()}*
-*📝 사유:* _{reason}_
-
+- 📌 결정: {ai_decision.upper()}
+- 📝 사유: {reason}
 ━━━━━━━━━━━━━━━━━━━━━━
-
-*📈 현재가:* `{current_btc_price:,.0f}` 원
-*📊 투자 비율:* `{percentage}%`
-*💸 주문 금액:* `{target_krw_amount:,.0f}` 원
-
+- 📈 현재가: {current_btc_price:,.0f} 원
+- 📊 투자 비율: {percentage}%
+- 💸 주문 금액: {target_krw_amount:,.0f} 원
 ━━━━━━━━━━━━━━━━━━━━━━
-
-*💰 KRW 잔고:* `{krw_balance}`
-*🪙 BTC 잔고:* `{btc_balance}`
+- 💰 KRW 잔고: {krw_balance}
+- 🪙 BTC 잔고: {btc_balance}
 """
   asyncio.run(send_telegram_message(telegram_message))
 
@@ -275,14 +271,13 @@ def execute_trade(run_transaction=True):
       print(f"### Buy Failed: {str(e)} ###")
 
     message = f"""
-*📈 ₿ BUY Order ₿ 📈*
+📈 ₿ BUY Order ₿ 📈
 
-*💰 거래금액:* `{target_krw_amount:,.0f}` 원
-*💹 체결가격:* `{current_btc_price:,.0f}` 원
-*🪙 거래수량:* `{target_krw_amount / current_btc_price:,.8f}` BTC
-
+- 💰 거래금액: {target_krw_amount:,.0f} 원
+- 💹 체결가격: {current_btc_price:,.0f} 원
+- 🪙 거래수량: {target_krw_amount / current_btc_price:,.8f} BTC
 ━━━━━━━━━━━━━━━━━━━━━━
-_자동매매 시스템에 의해 주문이 실행되었습니다_
+주문이 실행되었습니다
 """
     print(message)
     asyncio.run(send_telegram_message(message))
@@ -296,14 +291,13 @@ _자동매매 시스템에 의해 주문이 실행되었습니다_
       print(f"### Sell Failed: {str(e)} ###")
 
     message = f"""
-*📈 ₿ SELL Order ₿ 📈*
+📈 ₿ SELL Order ₿ 📈
 
-*💰 거래금액:* `{target_krw_amount:,.0f}` 원  
-*💹 체결가격:* `{current_btc_price:,.0f}` 원  
-*🪙 거래수량:* `{target_btc_amount:,.8f}` BTC  
-
+- 💰 거래금액: {target_krw_amount:,.0f} 원
+- 💹 체결가격: {current_btc_price:,.0f} 원
+- 🪙 거래수량: {target_btc_amount:,.8f} BTC
 ━━━━━━━━━━━━━━━━━━━━━━  
-_자동매매 시스템에 의해 주문이 실행되었습니다_
+주문이 실행되었습니다
 """
     print(message)
     asyncio.run(send_telegram_message(message))
