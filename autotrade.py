@@ -114,6 +114,16 @@ async def send_telegram_message(text):
     print(f"[TELEGRAM ERROR] {str(e)}")
 
 
+def run_async(coro):
+  try:
+    loop = asyncio.get_running_loop()
+    # 이미 실행 중이면 task로 처리
+    return asyncio.create_task(coro)
+  except RuntimeError:
+    # 실행 중인 루프 없으면 새로 생성
+    return asyncio.run(coro)
+
+
 def get_ai_decision(conn):
   # 차트 데이터 수집
   short_term_df = python_bithumb.get_ohlcv("KRW-BTC", interval="minute60", count=24)
@@ -255,7 +265,7 @@ def execute_trade(run_transaction=True):
 - 💰 KRW 잔고: {krw_balance}
 - 🪙 BTC 잔고: {btc_balance}
 """
-  asyncio.run(send_telegram_message(telegram_message))
+  run_async(send_telegram_message(telegram_message))
 
   if run_transaction == False:
     return
@@ -280,7 +290,7 @@ def execute_trade(run_transaction=True):
 주문이 실행되었습니다
 """
     print(message)
-    asyncio.run(send_telegram_message(message))
+    run_async(send_telegram_message(message))
   elif ai_decision == "sell":
     target_btc_amount = target_krw_amount / current_btc_price
 
@@ -300,7 +310,7 @@ def execute_trade(run_transaction=True):
 주문이 실행되었습니다
 """
     print(message)
-    asyncio.run(send_telegram_message(message))
+    run_async(send_telegram_message(message))
   elif ai_decision == "hold":
     print("### Hold Position ###")
     order_executed = True  # 'hold'도 성공한 결정으로 간주
@@ -336,7 +346,8 @@ def run_scheduler():
   print(f"스케줄링된 실행 시간: 매일 {SCHEDULE_TIME}")
 
   schedule.every().day.at(SCHEDULE_TIME).do(execute_trade, run_transaction=True)
-  schedule.every().day.at("11:00").do(execute_trade, run_transaction=False)
+  schedule.every().day.at("10:00").do(execute_trade, run_transaction=False)
+  schedule.every().day.at("18:00").do(execute_trade, run_transaction=False)
   schedule.every().day.at("23:00").do(execute_trade, run_transaction=False)
 
   # 매일 특정 시간에 작업 실행하도록 스케줄링
