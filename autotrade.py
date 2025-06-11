@@ -115,13 +115,17 @@ async def send_telegram_message(text):
 
 
 def run_async(coro):
-  try:
-    loop = asyncio.get_running_loop()
-    # 이미 실행 중이면 task로 처리
-    return asyncio.create_task(coro)
-  except RuntimeError:
-    # 실행 중인 루프 없으면 새로 생성
-    return asyncio.run(coro)
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return loop.run_until_complete(coro)
+    except RuntimeError:
+        # 루프가 없으면 새로 생성
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop.run_until_complete(coro)
 
 
 def get_ai_decision(conn):
