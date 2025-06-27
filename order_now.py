@@ -12,7 +12,7 @@ load_dotenv()
 ACCESS_KEY = os.getenv("BITHUMB_ACCESS_KEY")
 SECRET_KEY = os.getenv("BITHUMB_SECRET_KEY")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-AMOUNT = 10100
+KRW_AMOUNT = 10100
 SCHEDULE_TIME = "03:17"
 
 # telegram bot
@@ -26,16 +26,29 @@ my_btc = bithumb.get_balance("BTC")
 
 
 def buy_now():
-  current_price = python_bithumb.get_current_price("KRW-BTC")
-  print(f"### Buy Order: {AMOUNT:,.0f} KRW {current_price:,.0f} BTC ###")
-  asyncio.run(send_telegram_message(f"### Buy Order: {AMOUNT:,.0f} KRW {current_price:,.0f} BTC ###"))
+  current_btc_price = python_bithumb.get_current_price("KRW-BTC")
+  print(f"### Buy Order: {KRW_AMOUNT:,.0f} KRW {current_btc_price:,.0f} BTC ###")
+  asyncio.run(send_telegram_message(f"### Buy Order: {KRW_AMOUNT:,.0f} KRW {current_btc_price:,.0f} BTC ###"))
 
   try:
-    bithumb.buy_market_order("KRW-BTC", AMOUNT)
+    bithumb.buy_market_order("KRW-BTC", KRW_AMOUNT)
   except Exception as e:
-    print(f"### Buy Failed: {str(e)} ###")
-    asyncio.run(send_telegram_message(f"### Buy Failed: {str(e)} ###"))
+    message = f"### Transaction Failed: {str(e)} ###"
+    print(message)
+    asyncio.run(send_telegram_message(message))
 
+def sell_now():
+  current_btc_price = python_bithumb.get_current_price("KRW-BTC")
+  target_btc_amount = KRW_AMOUNT / current_btc_price
+  print(f"### Sell Order: {KRW_AMOUNT:,.0f} KRW {target_btc_amount:,.0f} BTC ###")
+  asyncio.run(send_telegram_message(f"### Sell Order: {KRW_AMOUNT:,.0f} KRW {target_btc_amount:,.0f} BTC ###"))
+
+  try:
+    bithumb.sell_market_order("KRW-BTC", target_btc_amount)
+  except Exception as e:
+    message = f"### Transaction Failed: {str(e)} ###"
+    print(message)
+    asyncio.run(send_telegram_message(message))
 
 async def send_telegram_message(text):
   try:
